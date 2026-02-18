@@ -1,1 +1,7 @@
 from .user_model import User
+from .challenge_model import Challenge
+from .challenge_version_model import ChallengeVersion
+from .submission_model import Submission
+from .objective_result_model import ObjectiveResult
+from .skill_model import Skill
+from .user_skill_progress_model import UserSkillProgress
