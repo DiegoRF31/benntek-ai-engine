@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from sqlalchemy import text
+from app.core.database import engine
 
 app = FastAPI(
     title="Benntek AI Engine",
@@ -8,3 +10,9 @@ app = FastAPI(
 @app.get("/")
 def health():
     return {"status": "engine running"}
+
+@app.get("/db-test")
+def db_test():
+    with engine.connect() as connection:
+        result = connection.execute(text("SELECT 1"))
+        return {"db_response": result.scalar()}
