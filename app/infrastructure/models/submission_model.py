@@ -26,4 +26,8 @@ class Submission(Base):
 
     # Relationships
     challenge_version = relationship("ChallengeVersion", back_populates="submissions")
-    objective_results = relationship("ObjectiveResult", back_populates="submission")
+    objective_results = relationship(
+        "ObjectiveResult", 
+        back_populates="submission",
+        cascade="all, delete-orphan"
+    )
