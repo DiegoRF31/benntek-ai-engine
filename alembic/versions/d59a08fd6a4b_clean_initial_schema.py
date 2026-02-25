@@ -1,18 +1,18 @@
-"""initial full schema
+"""clean initial schema
 
-Revision ID: a81c6ac0eb0f
+Revision ID: d59a08fd6a4b
 Revises: 
-Create Date: 2026-02-18 22:59:47.857307
+Create Date: 2026-02-24 20:32:32.364645
 
 """
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+
 
 # revision identifiers, used by Alembic.
-revision: str = 'a81c6ac0eb0f'
+revision: str = 'd59a08fd6a4b'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -44,7 +44,7 @@ def upgrade() -> None:
     sa.Column('password_hash', sa.String(length=255), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('tenant_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
@@ -52,26 +52,26 @@ def upgrade() -> None:
     op.create_table('challenge_versions',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('challenge_id', sa.Integer(), nullable=False),
-    sa.Column('description', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('objectives', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('scoring_rules', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('hints', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('skills', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+    sa.Column('description', sa.String(), nullable=False),
+    sa.Column('objectives', sa.JSON(), nullable=False),
+    sa.Column('scoring_rules', sa.JSON(), nullable=False),
+    sa.Column('hints', sa.JSON(), nullable=True),
+    sa.Column('skills', sa.JSON(), nullable=True),
     sa.Column('version_number', sa.Integer(), nullable=False),
     sa.Column('is_published', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['challenge_id'], ['challenges.id'], ),
+    sa.ForeignKeyConstraint(['challenge_id'], ['challenges.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_skill_progress',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('skill_id', sa.Integer(), nullable=False),
-    sa.Column('score', sa.Integer(), nullable=False),
+    sa.Column('score', sa.Float(), nullable=False),
     sa.Column('level', sa.Integer(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['skill_id'], ['skills.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['skill_id'], ['skills.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('submissions',
@@ -80,19 +80,19 @@ def upgrade() -> None:
     sa.Column('challenge_version_id', sa.Integer(), nullable=False),
     sa.Column('input_text', sa.Text(), nullable=False),
     sa.Column('attempt_number', sa.Integer(), nullable=False),
-    sa.Column('score_awarded', sa.Integer(), nullable=False),
+    sa.Column('score_awarded', sa.Float(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['challenge_version_id'], ['challenge_versions.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['challenge_version_id'], ['challenge_versions.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('objective_results',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('submission_id', sa.Integer(), nullable=False),
-    sa.Column('objective_id', sa.String(), nullable=False),
+    sa.Column('objective_id', sa.Integer(), nullable=False),
     sa.Column('passed', sa.Boolean(), nullable=False),
-    sa.Column('points_awarded', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['submission_id'], ['submissions.id'], ),
+    sa.Column('points_awarded', sa.Float(), nullable=False),
+    sa.ForeignKeyConstraint(['submission_id'], ['submissions.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

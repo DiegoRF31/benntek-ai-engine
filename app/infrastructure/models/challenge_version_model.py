@@ -24,5 +24,10 @@ class ChallengeVersion(Base):
     is_published: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    challenge = relationship(
+        "Challenge",
+        back_populates="versions"
+    )
+
     # Relationships
     submissions = relationship("Submission", back_populates="challenge_version")

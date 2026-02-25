@@ -1,13 +1,13 @@
 
 from sqlalchemy.orm import Session
+from typing import List
 
 from app.infrastructure.repositories.submission_repository import SubmissionRepository
 from app.infrastructure.repositories.challenge_repository import ChallengeRepository
-from app.infrastructure.repositories.user_repository import UserRepository
-
 from app.infrastructure.models.submission_model import Submission
-
+from app.infrastructure.models.objective_result_model import ObjectiveResult
 from app.domain.services.scoring_engine import ScoringEngine
+
 
 class SubmissionService:
 
@@ -15,51 +15,47 @@ class SubmissionService:
         self.db = db
         self.submission_repo = SubmissionRepository(db)
         self.challenge_repo = ChallengeRepository(db)
-        self.user_repo = UserRepository(db)
 
-    def process_submission(
+    def submit(
         self,
         user_id: int,
         challenge_version_id: int,
         input_text: str,
-        attempt_number: int
+        objective_results_data: List[dict]
     ):
-        # Validate the user exist
-        user = self.user_repo.get_by_id(user_id)
-        if not user:
-            raise ValueError("User not found")
-    
+        
+        # Create submission entity
         submission = Submission(
             user_id=user_id,
             challenge_version_id=challenge_version_id,
             input_text=input_text,
-            attempt_number=attempt_number,
-            score_awarded=0.0
+            attempt_number=1,
         )
 
         submission = self.submission_repo.create(submission)
-    
-        # Basic submision
-        simulated_results = [
-            {"objective_id": 1, "score": 10.0, "max_score": 10.0},
-            {"objective_id": 2, "score": 5.0, "max_score": 10.0}
-        ]
-    
+
+        # Evaluate using Domain Scoring Engine
         evaluation = ScoringEngine.evaluate_submission(
             submission_id=submission.id,
-            objective_results=simulated_results
+            objective_results=objective_results_data
         )
 
-        final_percentage = evaluation.percentage
+        # Persist objective results
+        for obj in evaluation.objective_scores:
+            result = ObjectiveResult(
+                submission_id=submission.id,
+                objective_id=obj.objective_id,
+                passed=obj.score > 0,
+                points_awarded=obj.score
+            )
+            self.db.add(result)
 
+        self.db.commit()
+
+        # Update submission score
         self.submission_repo.update_score(
             submission=submission,
-            score=final_percentage
+            score=evaluation.total_score
         )
 
-        return {
-            "submission_id": submission.id,
-            "total_score": evaluation.total_score,
-            "max_score": evaluation.max_score,
-            "percentage": evaluation.percentage
-        }
+        return evaluation
