@@ -1,8 +1,8 @@
-"""clean initial schema
+"""initial schema
 
-Revision ID: d59a08fd6a4b
+Revision ID: 122fb0241f73
 Revises: 
-Create Date: 2026-02-24 20:32:32.364645
+Create Date: 2026-02-26 02:24:51.212431
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'd59a08fd6a4b'
+revision: str = '122fb0241f73'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -66,11 +66,10 @@ def upgrade() -> None:
     op.create_table('user_skill_progress',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('skill_id', sa.Integer(), nullable=False),
-    sa.Column('score', sa.Float(), nullable=False),
-    sa.Column('level', sa.Integer(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['skill_id'], ['skills.id'], ondelete='CASCADE'),
+    sa.Column('skill_name', sa.String(length=100), nullable=False),
+    sa.Column('skill_score', sa.Float(), nullable=False),
+    sa.Column('attempts_count', sa.Integer(), nullable=False),
+    sa.Column('last_updated', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )

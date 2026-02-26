@@ -5,6 +5,15 @@ from sqlalchemy import pool
 
 from alembic import context
 
+# Import all models so they are registered in Base.metadata
+from app.infrastructure.models.user_model import User
+from app.infrastructure.models.challenge_model import Challenge
+from app.infrastructure.models.challenge_version_model import ChallengeVersion
+from app.infrastructure.models.submission_model import Submission
+from app.infrastructure.models.objective_result_model import ObjectiveResult
+from app.infrastructure.models.skill_model import Skill
+from app.infrastructure.models.user_skill_progress_model import UserSkillProgress
+
 from app.core.database import Base
 from app.infrastructure.models import *
 
