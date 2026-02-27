@@ -19,6 +19,8 @@ class UserSkillProgress(Base):
 
     attempts_count: Mapped[int] = mapped_column(Integer, default=0)
 
+    level: Mapped[int] = mapped_column(Integer, default=1)
+
     last_updated: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,

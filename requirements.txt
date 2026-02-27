@@ -10,3 +10,5 @@ passlib[bcrypt]
 python-jose[cryptography]
 structlog
 pytest
+python-jose[cryptography]
+passlib[bcrypt]
