@@ -2,13 +2,13 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.core.database import get_db
-from app.infrastructure.models.user_model import User  # adjust path if needed
+from app.infrastructure.models.user_model import User
 
 # Configuration
 
@@ -16,21 +16,21 @@ SECRET_KEY = "CHANGE_THIS_IN_PRODUCTION"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(tags=["Auth"])
 
 # Utility functions
 
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-
-def get_password_hash(password):
+def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
 
     expire = datetime.utcnow() + (
@@ -41,13 +41,17 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def authenticate_user(db: Session, email: str, password: str):
-    user = db.query(User).filter(User.email == email).first()
+def authenticate_user(db: Session, username_or_email: str, password: str):
+
+    user = db.query(User).filter(
+        (User.username == username_or_email) |
+        (User.email == username_or_email)
+    ).first()
 
     if not user:
         return None
 
-    if not verify_password(password, user.password):
+    if not verify_password(password, user.password_hash):
         return None
 
     return user
@@ -56,9 +60,9 @@ def authenticate_user(db: Session, email: str, password: str):
 
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    """
-    Authenticates user and returns JWT token.
-    """
+    
+    #Authenticates user and returns JWT token.
+    
 
     user = authenticate_user(db, form_data.username, form_data.password)
 
@@ -84,3 +88,27 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             "role": user.role
         }
     }
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+
+        if user_id is None:
+            raise credentials_exception
+
+    except JWTError:
+        raise credentials_exception
+
+    user = db.query(User).filter(User.id == int(user_id)).first()
+
+    if user is None:
+        raise credentials_exception
+
+    return user
