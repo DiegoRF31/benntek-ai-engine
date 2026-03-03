@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 # Import routers directly (clean architecture approach)
@@ -10,7 +11,6 @@ from app.api.analytics import router as analytics_router
 
 from app.core.database import Base, engine
 from app.infrastructure.models.user_model import User
-from fastapi import FastAPI, Depends
 
 from app.api.auth import get_current_user
 
@@ -19,8 +19,18 @@ app = FastAPI(
     version="0.1.0"
 )
 
-Base.metadata.create_all(bind=engine)
+origins = [
+    "http://localhost:5173",
+]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+Base.metadata.create_all(bind=engine)
 
 # Register API routers
 app.include_router(challenges_router, prefix="/challenges")
