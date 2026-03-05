@@ -2,13 +2,15 @@ from datetime import datetime
 from sqlalchemy import ForeignKey, Integer, Text, DateTime, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
-
+from sqlalchemy import Integer
 
 class Submission(Base):
     __tablename__ = "submissions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
+    tenant_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False

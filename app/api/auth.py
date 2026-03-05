@@ -75,7 +75,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     access_token = create_access_token(
         data={
             "sub": str(user.id),
-            "role": user.role
+            "role": user.role,
+            "tenant_id": user.tenant_id
         }
     )
 

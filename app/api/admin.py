@@ -19,7 +19,9 @@ def get_all_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(["admin"]))
 ):
-    query = db.query(User)
+    query = db.query(User).filter(
+    User.tenant_id == current_user.tenant_id
+)
 
     if role:
         query = query.filter(User.role == role)
@@ -48,7 +50,10 @@ def update_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(["admin"]))
 ):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(
+    User.id == user_id,
+    User.tenant_id == current_user.tenant_id
+).first()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -68,7 +73,10 @@ def delete_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(["admin"]))
 ):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(
+    User.id == user_id,
+    User.tenant_id == current_user.tenant_id
+).first()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
