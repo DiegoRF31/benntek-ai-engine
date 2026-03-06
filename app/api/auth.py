@@ -124,3 +124,14 @@ def require_role(required_roles: list[str]):
             )
         return current_user
     return role_checker
+
+@router.get("/me")
+def get_me(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "username": current_user.username,
+        "role": current_user.role,
+        "tenant_id": current_user.tenant_id,
+        "is_active": current_user.is_active
+    }

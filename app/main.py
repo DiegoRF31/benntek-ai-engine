@@ -8,6 +8,7 @@ from app.api.submission import router as submission_router
 from app.api.auth import router as auth_router
 from app.api.analytics import router as analytics_router
 from app.api.admin import router as admin_router
+from app.api import instructor
 
 
 from app.core.database import Base, engine
@@ -16,13 +17,10 @@ from app.infrastructure.models.user_model import User
 from app.api.auth import get_current_user
 
 
-
 app = FastAPI(
     title="Benntek AI Engine",
     version="0.1.0"
 )
-
-app.include_router(admin_router)
 
 origins = [
     "http://localhost:5173",
@@ -42,7 +40,8 @@ app.include_router(challenges_router, prefix="/challenges")
 app.include_router(submission_router)
 app.include_router(auth_router, prefix="/auth")
 app.include_router(analytics_router, prefix="/analytics")
-
+app.include_router(instructor.router)
+app.include_router(admin_router)
 
 @app.get("/")
 def health():
