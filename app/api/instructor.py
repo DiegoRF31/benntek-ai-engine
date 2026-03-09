@@ -12,12 +12,31 @@ router = APIRouter(
 
 @router.get("/cohorts")
 def get_cohorts(
-    current_user: User = Depends(require_role(["instructor", "admin"])),
+    current_user: User = Depends(require_role(["Instructor", "admin"])),
     db: Session = Depends(get_db)
 ):
-    
+
     return {
-        "message": "Instructor cohorts endpoint working",
-        "user": current_user.email,
-        "role": current_user.role
-    } 
+        "cohorts": [],
+        "instructor": {
+            "id": current_user.id,
+            "name": current_user.username,
+            "email": current_user.email,
+            "role": current_user.role
+        }
+    }
+
+
+@router.get("/analytics")
+def get_analytics(
+    current_user: User = Depends(require_role(["Instructor", "admin"])),
+    db: Session = Depends(get_db)
+):
+    return {
+        "categoryPerformance": [],
+        "engagementTrend": [],
+        "difficultyStats": [],
+        "topStudents": [],
+        "challengesNeedingAttention": [],
+        "recommendations": []
+    }
