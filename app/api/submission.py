@@ -15,7 +15,7 @@ router = APIRouter(prefix="/submissions", tags=["Submissions"])
 def submit_challenge(
     data: SubmissionCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role(["learner"]))
+    current_user: User = Depends(require_role(["user"]))
 ):
 
     submission = Submission(

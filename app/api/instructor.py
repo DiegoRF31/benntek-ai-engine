@@ -12,7 +12,7 @@ router = APIRouter(
 
 @router.get("/cohorts")
 def get_cohorts(
-    current_user: User = Depends(require_role(["Instructor", "admin"])),
+    current_user: User = Depends(require_role(["instructor", "admin"])),
     db: Session = Depends(get_db)
 ):
 
@@ -29,7 +29,7 @@ def get_cohorts(
 
 @router.get("/analytics")
 def get_analytics(
-    current_user: User = Depends(require_role(["Instructor", "admin"])),
+    current_user: User = Depends(require_role(["instructor", "admin"])),
     db: Session = Depends(get_db)
 ):
     return {
