@@ -7,3 +7,4 @@ from .skill_model import Skill
 from .user_skill_progress_model import UserSkillProgress
 from .learning_module_model import LearningModule, ModuleFramework, ModuleSection
 from .learning_path_model import LearningPath, PathModule
+from .cohort_model import Cohort, CohortEnrollment, CohortChallenge
