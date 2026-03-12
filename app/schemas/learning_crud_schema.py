@@ -163,9 +163,11 @@ class PathDetailResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Section complete stub
+# Section complete
 # ---------------------------------------------------------------------------
 
 class SectionCompleteResponse(BaseModel):
     success: bool
-    message: str = "Progress tracking available in a future release."
+    module_completed: bool = False
+    sections_completed: int = 0
+    total_sections: int = 0

@@ -2,9 +2,11 @@ import re
 from typing import Optional
 
 from fastapi import HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.infrastructure.models.learning_module_model import LearningModule, ModuleFramework, ModuleSection
+from app.infrastructure.models.learner_module_progress_model import LearnerModuleProgress
 from app.infrastructure.models.learning_path_model import LearningPath, PathModule
 from app.infrastructure.models.module_reference_model import ModuleReference
 from app.infrastructure.models.user_model import User
@@ -242,8 +244,49 @@ class LearningCrudService:
     def complete_section(
         db: Session, current_user: User, module_id: int, section_id: int
     ) -> SectionCompleteResponse:
-        # Stub — learner_module_progress table added in Step 12
-        return SectionCompleteResponse(success=True)
+        module = db.query(LearningModule).filter(
+            LearningModule.id == module_id,
+            LearningModule.tenant_id == current_user.tenant_id,
+        ).first()
+        if not module:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Module not found")
+
+        section = db.query(ModuleSection).filter(
+            ModuleSection.id == section_id,
+            ModuleSection.module_id == module_id,
+        ).first()
+        if not section:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Section not found")
+
+        # Idempotent: record completion only if not already done
+        existing = db.query(LearnerModuleProgress).filter(
+            LearnerModuleProgress.user_id == current_user.id,
+            LearnerModuleProgress.module_id == module_id,
+            LearnerModuleProgress.section_id == section_id,
+        ).first()
+        if not existing:
+            db.add(LearnerModuleProgress(
+                user_id=current_user.id,
+                module_id=module_id,
+                section_id=section_id,
+            ))
+            db.commit()
+
+        total_sections = db.query(func.count(ModuleSection.id)).filter(
+            ModuleSection.module_id == module_id,
+        ).scalar() or 0
+
+        sections_completed = db.query(func.count(LearnerModuleProgress.id)).filter(
+            LearnerModuleProgress.user_id == current_user.id,
+            LearnerModuleProgress.module_id == module_id,
+        ).scalar() or 0
+
+        return SectionCompleteResponse(
+            success=True,
+            module_completed=(total_sections > 0 and sections_completed >= total_sections),
+            sections_completed=sections_completed,
+            total_sections=total_sections,
+        )
 
     # -------------------------------------------------------------------
     # Paths

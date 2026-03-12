@@ -6,6 +6,7 @@ from app.api.auth import get_current_user, require_role
 from app.infrastructure.models.user_model import User
 from app.application.services.cohort_service import CohortService
 from app.application.services.challenge_authoring_service import ChallengeAuthoringService
+from app.application.services.learning_progress_service import LearningProgressService
 from app.schemas.cohort_schema import (
     CohortsResponse,
     CohortCreateRequest,
@@ -16,6 +17,10 @@ from app.schemas.cohort_schema import (
     AvailableChallengesResponse,
     AvailableStudentsResponse,
     InstructorAnalyticsResponse,
+)
+from app.schemas.learning_progress_schema import (
+    LearningProgressOverviewResponse,
+    CohortProgressResponse,
 )
 from app.schemas.challenge_authoring_schema import (
     InstructorChallengesResponse,
@@ -188,3 +193,24 @@ def get_analytics(
     db: Session = Depends(get_db),
 ):
     return CohortService.get_analytics(db, current_user)
+
+
+# ===========================================================================
+# Learning Progress  —  /instructor/learning-progress/...
+# ===========================================================================
+
+@router.get("/learning-progress/overview", response_model=LearningProgressOverviewResponse)
+def get_learning_progress_overview(
+    current_user: User = Depends(require_role(["instructor", "admin"])),
+    db: Session = Depends(get_db),
+):
+    return LearningProgressService.get_overview(db, current_user)
+
+
+@router.get("/learning-progress/cohort/{cohort_id}", response_model=CohortProgressResponse)
+def get_cohort_learning_progress(
+    cohort_id: int,
+    current_user: User = Depends(require_role(["instructor", "admin"])),
+    db: Session = Depends(get_db),
+):
+    return LearningProgressService.get_cohort_progress(db, cohort_id, current_user)
