@@ -13,7 +13,11 @@ from app.schemas.challenge_schema import (
     ChallengeListResponse,
     ChallengeSubmissionCreate,
     ChallengeSubmissionResponse,
+    HintsResponse,
+    HintUnlockResponse,
+    SolutionDownloadResponse,
     SubmissionHistoryResponse,
+    TestResultsResponse,
 )
 
 router = APIRouter()
@@ -74,3 +78,40 @@ def create_submission(
     current_user: User = Depends(get_current_user),
 ):
     return ChallengeService.create_submission(db, challenge_id, current_user, payload)
+
+
+@router.get("/{challenge_id}/hints", response_model=HintsResponse)
+def get_hints(
+    challenge_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return ChallengeService.get_hints(db, challenge_id, current_user)
+
+
+@router.post("/{challenge_id}/hint/{hint_id}/unlock", response_model=HintUnlockResponse)
+def unlock_hint(
+    challenge_id: int,
+    hint_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return ChallengeService.unlock_hint(db, challenge_id, hint_id, current_user)
+
+
+@router.get("/{challenge_id}/test-results", response_model=TestResultsResponse)
+def get_test_results(
+    challenge_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return ChallengeService.get_test_results(db, challenge_id, current_user)
+
+
+@router.post("/{challenge_id}/solution/download", response_model=SolutionDownloadResponse)
+def download_solution(
+    challenge_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return ChallengeService.get_solution_download(db, challenge_id, current_user)

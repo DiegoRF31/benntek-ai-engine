@@ -104,3 +104,46 @@ class ChallengeSubmissionResponse(BaseModel):
 
 class SubmissionHistoryResponse(BaseModel):
     submissions: List[SubmissionResult]
+
+
+# ---------------------------------------------------------------------------
+# Hints
+# ---------------------------------------------------------------------------
+
+class HintsResponse(BaseModel):
+    hints: List[HintItem]
+
+
+class HintUnlockResponse(BaseModel):
+    success: bool
+    hint: HintItem
+    penalty_applied: float
+
+
+# ---------------------------------------------------------------------------
+# Test results
+# ---------------------------------------------------------------------------
+
+class ObjectiveResultItem(BaseModel):
+    objective_id: int
+    label: str
+    passed: bool
+    points_awarded: float
+    max_points: float
+
+
+class TestResultsResponse(BaseModel):
+    submission_id: Optional[int] = None
+    score: float
+    max_score: float
+    objectives: List[ObjectiveResultItem]
+
+
+# ---------------------------------------------------------------------------
+# Solution download
+# ---------------------------------------------------------------------------
+
+class SolutionDownloadResponse(BaseModel):
+    filename: str
+    content: str
+    content_type: str = "text/plain"
