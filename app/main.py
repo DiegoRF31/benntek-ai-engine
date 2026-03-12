@@ -11,6 +11,7 @@ from app.api.admin import router as admin_router
 from app.api import instructor
 from app.api import dashboard
 from app.api.leaderboard import router as leaderboard_router
+from app.api.learning import router as learning_router
 
 
 from app.core.database import Base, engine
@@ -45,6 +46,7 @@ app.include_router(instructor.router)
 app.include_router(admin_router)
 app.include_router(dashboard.router)
 app.include_router(leaderboard_router)
+app.include_router(learning_router)
 
 @app.get("/")
 def health():

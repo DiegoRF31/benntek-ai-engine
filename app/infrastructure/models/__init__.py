@@ -5,3 +5,5 @@ from .submission_model import Submission
 from .objective_result_model import ObjectiveResult
 from .skill_model import Skill
 from .user_skill_progress_model import UserSkillProgress
+from .learning_module_model import LearningModule, ModuleFramework, ModuleSection
+from .learning_path_model import LearningPath, PathModule
