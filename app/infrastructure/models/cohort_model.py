@@ -22,6 +22,7 @@ class Cohort(Base):
 
     enrollments = relationship("CohortEnrollment", back_populates="cohort", cascade="all, delete-orphan")
     challenges = relationship("CohortChallenge", back_populates="cohort", cascade="all, delete-orphan")
+    learning_assignments = relationship("CohortLearningAssignment", back_populates="cohort", cascade="all, delete-orphan")
 
 
 class CohortEnrollment(Base):

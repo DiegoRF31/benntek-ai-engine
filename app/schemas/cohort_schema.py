@@ -166,3 +166,49 @@ class InstructorAnalyticsResponse(BaseModel):
     topStudents: List[TopStudentItem]
     challengesNeedingAttention: List[ChallengeAttentionItem]
     recommendations: List[Recommendation]
+
+
+# ---------------------------------------------------------------------------
+# Cohort learning assignments
+# ---------------------------------------------------------------------------
+
+class AssignLearningRequest(BaseModel):
+    learning_path_id: Optional[int] = None
+    module_id: Optional[int] = None
+    due_date: Optional[str] = None
+    is_required: bool = True
+
+
+class AssignLearningResponse(BaseModel):
+    success: bool
+    assignment_id: int
+
+
+class LearningAssignmentPathItem(BaseModel):
+    assignment_id: int
+    title: str
+    level: str
+    description: Optional[str] = None
+    is_required: bool
+    due_date: Optional[str] = None
+    assigned_at: str
+    assigned_by_username: Optional[str] = None
+    module_count: int = 0
+    estimated_hours: Optional[float] = None
+
+
+class LearningAssignmentModuleItem(BaseModel):
+    assignment_id: int
+    title: str
+    level: str
+    summary: Optional[str] = None
+    is_required: bool
+    due_date: Optional[str] = None
+    assigned_at: str
+    assigned_by_username: Optional[str] = None
+    estimated_minutes: Optional[int] = None
+
+
+class CohortLearningResponse(BaseModel):
+    paths: List[LearningAssignmentPathItem]
+    modules: List[LearningAssignmentModuleItem]

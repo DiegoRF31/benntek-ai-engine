@@ -13,6 +13,7 @@ from app.api import dashboard
 from app.api.leaderboard import router as leaderboard_router
 from app.api.learning import router as learning_router
 from app.api.ai_router import router as ai_router
+from app.api.cohorts import router as cohorts_router
 
 
 from app.core.database import Base, engine
@@ -49,6 +50,7 @@ app.include_router(dashboard.router)
 app.include_router(leaderboard_router)
 app.include_router(learning_router)
 app.include_router(ai_router)
+app.include_router(cohorts_router)
 
 @app.get("/")
 def health():
