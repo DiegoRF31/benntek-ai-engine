@@ -6,6 +6,7 @@ from .objective_result_model import ObjectiveResult
 from .skill_model import Skill
 from .user_skill_progress_model import UserSkillProgress
 from .learning_module_model import LearningModule, ModuleFramework, ModuleSection
+from .module_reference_model import ModuleReference
 from .learning_path_model import LearningPath, PathModule
 from .cohort_model import Cohort, CohortEnrollment, CohortChallenge
 from .hint_unlock_model import HintUnlock

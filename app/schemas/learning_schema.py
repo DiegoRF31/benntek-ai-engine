@@ -23,8 +23,11 @@ class ModuleListItem(BaseModel):
     level: str
     estimated_minutes: Optional[int] = None
     frameworks: List[FrameworkItem]
+    framework_count: int = 0
     section_count: int
     lab_count: int
+    status: str = "published"
+    created_at: Optional[str] = None
     progress: Optional[ModuleProgress] = None
 
 
@@ -43,6 +46,8 @@ class PathListItem(BaseModel):
     level: str
     estimated_hours: Optional[float] = None
     module_count: int
+    status: str = "published"
+    created_at: Optional[str] = None
     progress_percent: Optional[float] = None
     completed_modules: Optional[int] = None
     total_modules: Optional[int] = None

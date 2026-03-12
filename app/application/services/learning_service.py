@@ -15,6 +15,8 @@ from app.schemas.learning_schema import (
     PathsResponse,
 )
 
+_INSTRUCTOR_ROLES = {"instructor", "admin"}
+
 
 class LearningService:
 
@@ -41,11 +43,15 @@ class LearningService:
                 func.coalesce(section_counts.c.section_count, 0).label("section_count"),
             )
             .outerjoin(section_counts, section_counts.c.module_id == LearningModule.id)
-            .filter(
-                LearningModule.tenant_id == current_user.tenant_id,
-                LearningModule.status == "published",
-            )
+            .filter(LearningModule.tenant_id == current_user.tenant_id)
         )
+
+        # Instructors/admins see all statuses; learners see only published
+        if current_user.role not in _INSTRUCTOR_ROLES:
+            query = query.filter(LearningModule.status == "published")
+        else:
+            # Exclude permanently archived modules from the list view
+            query = query.filter(LearningModule.status != "archived")
 
         if level:
             query = query.filter(LearningModule.level == level)
@@ -60,8 +66,6 @@ class LearningService:
 
         modules = []
         for module, section_count in rows:
-            # Load frameworks eagerly (already loaded via relationship if joinedload configured,
-            # but we fetch explicitly to keep it simple)
             frameworks = [
                 FrameworkItem(
                     framework_type=fw.framework_type,
@@ -78,9 +82,12 @@ class LearningService:
                     level=module.level,
                     estimated_minutes=module.estimated_minutes,
                     frameworks=frameworks,
+                    framework_count=len(frameworks),
                     section_count=int(section_count),
-                    lab_count=0,        # module_lab_links table added in a future step
-                    progress=None,      # learner_module_progress table added in a future step
+                    lab_count=0,            # module_lab_links table added in a future step
+                    status=module.status,
+                    created_at=module.created_at.isoformat() if module.created_at else None,
+                    progress=None,          # learner_module_progress table added in a future step
                 )
             )
 
@@ -98,19 +105,21 @@ class LearningService:
             .subquery()
         )
 
-        rows = (
+        query = (
             db.query(
                 LearningPath,
                 func.coalesce(module_counts.c.module_count, 0).label("module_count"),
             )
             .outerjoin(module_counts, module_counts.c.path_id == LearningPath.id)
-            .filter(
-                LearningPath.tenant_id == current_user.tenant_id,
-                LearningPath.status == "published",
-            )
-            .order_by(LearningPath.updated_at.desc())
-            .all()
+            .filter(LearningPath.tenant_id == current_user.tenant_id)
         )
+
+        if current_user.role not in _INSTRUCTOR_ROLES:
+            query = query.filter(LearningPath.status == "published")
+        else:
+            query = query.filter(LearningPath.status != "archived")
+
+        rows = query.order_by(LearningPath.updated_at.desc()).all()
 
         paths = [
             PathListItem(
@@ -120,6 +129,8 @@ class LearningService:
                 level=path.level,
                 estimated_hours=path.estimated_hours,
                 module_count=int(module_count),
+                status=path.status,
+                created_at=path.created_at.isoformat() if path.created_at else None,
                 progress_percent=None,      # learner_module_progress added in a future step
                 completed_modules=None,
                 total_modules=int(module_count),
