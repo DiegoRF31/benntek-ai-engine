@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.api.auth import require_role
+from app.api.auth import get_current_user, require_role
 from app.infrastructure.models.user_model import User
 from app.application.services.cohort_service import CohortService
+from app.application.services.challenge_authoring_service import ChallengeAuthoringService
 from app.schemas.cohort_schema import (
     CohortsResponse,
     CohortCreateRequest,
@@ -16,12 +17,87 @@ from app.schemas.cohort_schema import (
     AvailableStudentsResponse,
     InstructorAnalyticsResponse,
 )
+from app.schemas.challenge_authoring_schema import (
+    InstructorChallengesResponse,
+    CreateChallengeRequest,
+    CreateChallengeResponse,
+    GenerateDraftRequest,
+    ApproveRequest,
+    ApproveResponse,
+    UpdateChallengeRequest,
+    UpdateChallengeResponse,
+)
 
 router = APIRouter(
     prefix="/instructor",
     tags=["Instructor"],
 )
 
+
+# ===========================================================================
+# Challenge Authoring  —  /instructor/challenges/...
+# NOTE: literal-segment routes (create, generate, approve) must be declared
+# before the parameterised route /{challenge_id} to avoid routing conflicts.
+# ===========================================================================
+
+@router.get("/challenges", response_model=InstructorChallengesResponse)
+def get_instructor_challenges(
+    current_user: User = Depends(require_role(["instructor", "admin"])),
+    db: Session = Depends(get_db),
+):
+    return ChallengeAuthoringService.get_challenges(db, current_user)
+
+
+@router.post("/challenges/create", response_model=CreateChallengeResponse, status_code=status.HTTP_201_CREATED)
+def create_challenge(
+    payload: CreateChallengeRequest,
+    current_user: User = Depends(require_role(["instructor", "admin"])),
+    db: Session = Depends(get_db),
+):
+    return ChallengeAuthoringService.create_challenge(db, current_user, payload)
+
+
+@router.post("/challenges/generate", response_model=CreateChallengeResponse, status_code=status.HTTP_201_CREATED)
+def save_generated_draft(
+    payload: GenerateDraftRequest,
+    current_user: User = Depends(require_role(["instructor", "admin"])),
+    db: Session = Depends(get_db),
+):
+    return ChallengeAuthoringService.generate_draft(db, current_user, payload)
+
+
+@router.post("/challenges/approve/{challenge_id}", response_model=ApproveResponse)
+def approve_challenge(
+    challenge_id: int,
+    payload: ApproveRequest,
+    current_user: User = Depends(require_role(["admin"])),
+    db: Session = Depends(get_db),
+):
+    return ChallengeAuthoringService.approve_challenge(db, current_user, challenge_id, payload)
+
+
+@router.put("/challenges/{challenge_id}", response_model=UpdateChallengeResponse)
+def update_challenge(
+    challenge_id: int,
+    payload: UpdateChallengeRequest,
+    current_user: User = Depends(require_role(["instructor", "admin"])),
+    db: Session = Depends(get_db),
+):
+    return ChallengeAuthoringService.update_challenge(db, current_user, challenge_id, payload)
+
+
+@router.delete("/challenges/{challenge_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_challenge(
+    challenge_id: int,
+    current_user: User = Depends(require_role(["instructor", "admin"])),
+    db: Session = Depends(get_db),
+):
+    ChallengeAuthoringService.delete_challenge(db, current_user, challenge_id)
+
+
+# ===========================================================================
+# Cohort Management  —  /instructor/cohorts/...
+# ===========================================================================
 
 @router.get("/cohorts", response_model=CohortsResponse)
 def get_cohorts(
@@ -53,7 +129,7 @@ def get_cohort_detail(
 
 
 @router.post("/cohorts/{cohort_id}/challenges", status_code=status.HTTP_201_CREATED)
-def assign_challenge(
+def assign_challenge_to_cohort(
     cohort_id: int,
     payload: AssignChallengeRequest,
     current_user: User = Depends(require_role(["instructor", "admin"])),
@@ -101,6 +177,10 @@ def get_available_students(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cohort not found")
     return result
 
+
+# ===========================================================================
+# Instructor Analytics  —  /instructor/analytics
+# ===========================================================================
 
 @router.get("/analytics", response_model=InstructorAnalyticsResponse)
 def get_analytics(

@@ -169,9 +169,9 @@ class ChallengeService:
                 description=version.description,
                 difficulty=_map_difficulty(challenge.difficulty),
                 category=challenge.category,
-                challenge_type="prompt_injection",
+                challenge_type=challenge.challenge_type,
                 points=max_pts,
-                time_limit_minutes=None,
+                time_limit_minutes=challenge.time_limit_minutes,
                 user_attempts=attempts,
                 user_best_score=best_score,
                 user_has_passed=has_passed,
@@ -185,12 +185,13 @@ class ChallengeService:
             set(_map_difficulty(c.difficulty) for c in all_active),
             key=lambda d: diff_order.index(d) if d in diff_order else 99,
         )
+        types = sorted(set(c.challenge_type for c in all_active))
 
         return ChallengeListResponse(
             challenges=items,
             filters=ChallengeFilters(
                 categories=categories,
-                types=["prompt_injection"],
+                types=types,
                 difficulties=difficulties,
             ),
         )
@@ -243,9 +244,9 @@ class ChallengeService:
                 description=version.description,
                 difficulty=_map_difficulty(challenge.difficulty),
                 category=challenge.category,
-                challenge_type="prompt_injection",
+                challenge_type=challenge.challenge_type,
                 points=points,
-                time_limit_minutes=None,
+                time_limit_minutes=challenge.time_limit_minutes,
                 config={},
             ),
             hints=hints,
