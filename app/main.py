@@ -18,6 +18,8 @@ from app.api.cohorts import router as cohorts_router
 from app.api.reports import router as reports_router
 from app.api.coaching import router as coaching_router
 from app.api.ai_players import router as ai_players_router
+from app.api.ai_player_analytics import router as ai_player_analytics_router
+from app.api.attack_vectors import router as attack_vectors_router
 
 
 from app.core.database import Base, engine
@@ -76,6 +78,8 @@ app.include_router(cohorts_router)
 app.include_router(reports_router)
 app.include_router(coaching_router)
 app.include_router(ai_players_router)
+app.include_router(ai_player_analytics_router)
+app.include_router(attack_vectors_router)
 
 @app.get("/")
 def health():

@@ -12,3 +12,4 @@ from .cohort_model import Cohort, CohortEnrollment, CohortChallenge
 from .hint_unlock_model import HintUnlock
 from .cohort_learning_assignment_model import CohortLearningAssignment
 from .learner_module_progress_model import LearnerModuleProgress
+from .attack_vector_model import AttackVector
