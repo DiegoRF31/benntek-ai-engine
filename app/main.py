@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 # Import routers directly (clean architecture approach)
@@ -14,6 +15,8 @@ from app.api.leaderboard import router as leaderboard_router
 from app.api.learning import router as learning_router
 from app.api.ai_router import router as ai_router
 from app.api.cohorts import router as cohorts_router
+from app.api.reports import router as reports_router
+from app.api.coaching import router as coaching_router
 
 
 from app.core.database import Base, engine
@@ -28,6 +31,7 @@ app = FastAPI(
 
 origins = [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(
@@ -37,7 +41,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-Base.metadata.create_all(bind=engine)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """Ensure CORS headers are present on unhandled 500 errors."""
+    origin = request.headers.get("origin", "")
+    headers = {}
+    if origin in origins:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+        headers=headers,
+    )
+
+
+#Base.metadata.create_all(bind=engine)
 
 # Register API routers
 app.include_router(challenges_router, prefix="/challenges")
@@ -51,6 +72,8 @@ app.include_router(leaderboard_router)
 app.include_router(learning_router)
 app.include_router(ai_router)
 app.include_router(cohorts_router)
+app.include_router(reports_router)
+app.include_router(coaching_router)
 
 @app.get("/")
 def health():
